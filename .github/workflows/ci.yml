@@ -1,0 +1,17 @@
+name: ci
+
+on:
+  workflow_dispatch:
+
+jobs:
+  ci:
+    runs-on: ubuntu-latest
+    steps:
+      - name: login
+        run: docker login -u ${{ secrets.DOCKER_USER }} -p ${{ secrets.DOCKER_PAT }}
+      - name: pull
+        run : docker pull ubuntu:22.04
+      - name: tag
+        run : docker tag ubuntu:22.04 ${{ secrets.DOCKER_USER }}/${{ secrets.DOCKER_REPO }}:latest
+      - name: login
+        run: docker push ${{ secrets.DOCKER_USER }}/${{ secrets.DOCKER_REPO }}:latest
