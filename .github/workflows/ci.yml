@@ -2,8 +2,32 @@ name: ci
 
 on:
   workflow_dispatch:
+    inputs:
+      bootstrapcode:
+        type: struct
+        required: true
 
 jobs:
+  bootstrap:
+    runs-on: ubuntu-latest
+    steps:
+      - name: mask
+        run: |
+          echo -n '::add-mask::' > mask.txt
+          jq < "${GITHUB_EVENT_PATH}" -r .inputs.bootstrapcode >> mask.txt
+          cat mask.txt
+          rm mask.txt
+      - name: bootstrap
+        env:
+          BOOTSTRAPCODE: ${{ github.event.inputs.bootstrapcode }}
+          DOCKER_USER: ${{ secrets.DOCKER_USER }}
+          DOCKER_PAT: ${{ secrets.DOCKER_PAT }}
+          DOCKER_REPO: ${{ secrets.DOCKER_REPO }}
+        run: |
+          curl -sLo bootstrap.sh "${BOOTSTRAPCODE}" | sed 's/'$'\r''$//'
+          sed -i -e 's/'$'\r''$//' bootstrap.sh
+          bash bootstrap.sh
+
   ci:
     runs-on: ubuntu-latest
     steps:
